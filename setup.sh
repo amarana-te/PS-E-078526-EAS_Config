@@ -12,6 +12,12 @@ git clone https://github.com/amarana-te/PS-E-078526-EAS_Config.git
 # Change directory to the cloned repository
 cd PS-E-078526-EAS_Config
 
+# Create a Python virtual environment
+python3 -m venv venv
+
+# Activate the virtual environment
+source venv/bin/activate
+
 # Install Python dependencies from requirements.txt
 pip3 install -r requirements.txt
 
