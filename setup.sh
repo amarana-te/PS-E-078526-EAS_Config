@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # Update package list
-sudo apt update
+#sudo apt update
 
 # Install necessary packages
-sudo apt install python3-pip firefox git -y
+#sudo apt install python3-pip firefox git -y
 
 # Clone the Git repository
 git clone https://github.com/amarana-te/PS-E-078526-EAS_Config.git
@@ -13,7 +13,7 @@ git clone https://github.com/amarana-te/PS-E-078526-EAS_Config.git
 cd PS-E-078526-EAS_Config
 
 # Create a Python virtual environment
-python3 -m venv venv
+python3.11 -m venv venv
 
 # Activate the virtual environment
 source venv/bin/activate
