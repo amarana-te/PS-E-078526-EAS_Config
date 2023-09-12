@@ -279,7 +279,10 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
         if hostname:
 
-
+            driver.find_element(By.ID, "hostname").clear()
+            time.sleep(0.77)
+            driver.find_element(By.ID, "hostname").send_keys(hostname)
+            time.sleep(0.77)
             status += "\n" + timestamp() + "-> Hostname Changed "
 
         else:

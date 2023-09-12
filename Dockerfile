@@ -12,6 +12,8 @@ RUN set -x \
         curl \
         libx11-xcb1 \
        libdbus-glib-1-2 \
+       vi \
+       nano \
    && pip install  \
        requests \
        selenium \ 
