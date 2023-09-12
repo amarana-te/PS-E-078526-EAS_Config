@@ -46,6 +46,7 @@ except FileNotFoundError:
 
 opts = FirefoxOptions()
 opts.add_argument("--headless") #headless is a must when there isn't desktop environment
+opts.set_preference("accept_insecure_certs", True)
 #opts.profile.set_preference()
 driverService = Service('geckodriver') 
 driver = webdriver.Firefox(service=driverService, options=opts)
@@ -239,6 +240,7 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
             # Define the CSS selectors
             selector1 = 'div.form-group:nth-child(2) > div:nth-child(2) > input:nth-child(1)'
             selector2 = 'div.form-group:nth-child(1) > div:nth-child(2) > input:nth-child(1)'
+            
 
             try:
             
