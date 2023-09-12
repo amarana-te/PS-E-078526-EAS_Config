@@ -41,8 +41,12 @@ except FileNotFoundError:
 
 
 #Selenium Object
+
+
+
 opts = FirefoxOptions()
 opts.add_argument("--headless") #headless is a must when there isn't desktop environment
+#opts.profile.set_preference()
 driverService = Service('geckodriver') 
 driver = webdriver.Firefox(service=driverService, options=opts)
 
@@ -215,7 +219,7 @@ def swap_window(host_ip):
         time.sleep(1.77)
         driver.refresh()
         time.sleep(1.77)
-             # Wait until the specified text appears in the element
+        # Wait until the specified text appears in the element
         #diagnostics_message_locator = (By.CLASS_NAME, "diagnostics-message")
         #diagnostics_message_text = "Agent is running."
         #WebDriverWait(driver, 17).until(EC.text_to_be_present_in_element(diagnostics_message_locator, diagnostics_message_text))
@@ -225,30 +229,37 @@ def swap_window(host_ip):
 def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
     status = ''
-    #swap_window(host_ip=eas_ipAddress)
-
 
     try:
 
         if ntp:
 
             driver.find_element(By.LINK_TEXT, "Time").click()
-            time.sleep(1.07)
+            #time.sleep(1.07)
+            # Define the CSS selectors
+            selector1 = 'div.form-group:nth-child(2) > div:nth-child(2) > input:nth-child(1)'
+            selector2 = 'div.form-group:nth-child(1) > div:nth-child(2) > input:nth-child(1)'
 
-            current_ntp = driver.find_element(By.CSS_SELECTOR, 'div.form-group:nth-child(2) > div:nth-child(2) > input:nth-child(1)').get_attribute("value")
+            try:
+            
+                current_ntp_element = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector1)))
+                current_ntp = current_ntp_element.get_attribute("value")
+            
+            except NoSuchElementException:
+            
+                current_ntp_element = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector2)))
+                current_ntp = current_ntp_element.get_attribute("value")
+
             if current_ntp != ntp:
-
-                driver.find_element(By.CSS_SELECTOR, 'div.form-group:nth-child(2) > div:nth-child(2) > input:nth-child(1)').clear()
-                time.sleep(1.07)
+                current_ntp_element.clear()
                 
                 try:
-                    driver.find_element(By.CSS_SELECTOR, 'div.form-group:nth-child(2) > div:nth-child(2) > input:nth-child(1)').send_keys(ntp)
-                    time.sleep(0.77)
+                    current_ntp_element.send_keys(ntp)
                     driver.find_element(By.ID, "submit-form").submit()
                     time.sleep(3.3)
-                
                 except (NoSuchElementException, ElementNotInteractableException, ElementClickInterceptedException) as ex:
                     pass
+
                 
                 swap_window(host_ip=eas_ipAddress)
                 logout(button_CSS="button.btn-outline-default:nth-child(2)")
@@ -266,32 +277,52 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
         if hostname:
 
-            driver.find_element(By.ID, "hostname").clear()
-            time.sleep(0.77)
-            driver.find_element(By.ID, "hostname").send_keys(hostname)
-            time.sleep(0.77)
+
             status += "\n" + timestamp() + "-> Hostname Changed "
 
         else:
             status += "\n" + timestamp() + "-> Hostname Default"
             time.sleep(0.77)
 
+
         #SSL
         if cert > 0:
+                
+                driver.find_element(By.LINK_TEXT, "Network").click()
+                time.sleep(1.77)
 
                 driver.find_element(By.NAME, "proxy-ca").send_keys(CERT)
                 status += "\n" + timestamp() + "-> SSL cert ok "
                 time.sleep(0.77)
 
+
         #apt-get proxy
         if proxy:
 
-            driver.find_element(By.NAME, "use-apt-proxy").click()
-            time.sleep(0.77)
-            driver.find_element(By.NAME, "apt-proxy-host").send_keys(proxy)
-            time.sleep(0.77)
-            driver.find_element(By.NAME, "apt-proxy-port").send_keys(proxy_port)
-            time.sleep(0.77)
+            # Find the checkbox element
+            checkbox = driver.find_element(By.NAME, "use-apt-proxy")
+
+            # Check if the checkbox is checked (ticked)
+            if checkbox.is_selected():
+                
+                time.sleep(0.77)
+                driver.find_element(By.NAME, "apt-proxy-host").clear()
+                time.sleep(0.77)
+                driver.find_element(By.NAME, "apt-proxy-host").send_keys(proxy)
+                time.sleep(0.77)
+                driver.find_element(By.NAME, "apt-proxy-port").clear()
+                time.sleep(0.77)
+                driver.find_element(By.NAME, "apt-proxy-port").send_keys(proxy_port)
+
+            else:
+
+                time.sleep(0.77)
+                driver.find_element(By.NAME, "use-apt-proxy").click()
+                time.sleep(0.77)
+                driver.find_element(By.NAME, "apt-proxy-host").send_keys(proxy)
+                time.sleep(0.77)
+                driver.find_element(By.NAME, "apt-proxy-port").send_keys(proxy_port)
+                time.sleep(0.77)
 
         # Done Network
         driver.find_element(By.ID, "submit-form").submit()
@@ -328,7 +359,7 @@ try:
 
         for line in lines:
 
-            bar.next()
+            #bar.next()
             # Split each line using the comma delimiter
             eas = line.strip().split(',')
 
