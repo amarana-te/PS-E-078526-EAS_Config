@@ -364,7 +364,7 @@ try:
 
         for line in lines:
 
-            #bar.next()
+            bar.next()
             # Split each line using the comma delimiter
             eas = line.strip().split(',')
 
