@@ -6,8 +6,6 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException,
 
 
 
-
-
 try:
     AGENT = input("Enter Agent ip address https://")
     #print("You entered:", new_password)

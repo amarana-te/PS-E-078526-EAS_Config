@@ -4,5 +4,6 @@
     "cert": 0,
     "proxy_url": "thd-svr-proxy.com",
     "proxy_port": 9090,
-    "defaultPassword": "welcome"
+    "defaultPassword": "welcome",
+    "firefox_proxy": ""
 }

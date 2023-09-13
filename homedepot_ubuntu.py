@@ -19,7 +19,7 @@ from certificate import CERT
 # Ask for the password before selenium instance
 
 try:
-    new_password = getpass.getpass("Enter Agents new password: ")
+    new_password = getpass.getpass("Enter Agent(s) new password: ")
     #print("You entered:", new_password)
 except KeyboardInterrupt:
     print("\nPassword input was canceled.")
@@ -47,7 +47,16 @@ except FileNotFoundError:
 opts = FirefoxOptions()
 opts.add_argument("--headless") #headless is a must when there isn't desktop environment
 opts.set_preference("accept_insecure_certs", True)
-#opts.profile.set_preference()
+
+if config_data.get("firefox_proxy"):
+
+    PROXY = config_data.get("firefox_proxy")
+    webdriver.DesiredCapabilities.FIREFOX['proxy'] = {
+    "httpProxy": PROXY,
+    "sslProxy": PROXY,
+    "proxyType": "manual",
+}
+    
 driverService = Service('geckodriver') 
 driver = webdriver.Firefox(service=driverService, options=opts)
 
@@ -90,24 +99,24 @@ def login(host_ip, password) -> bool:
         return True
     
     except TimeoutException as ex:
-        print(f" Host not reachable: {portal}")
+        print(f"\n Host not reachable: {portal}")
         dump_logs(d_logs=ex)
         return False
 
     except NoSuchElementException as ex:
-        print(f" Element not found: {ex.msg}")
+        print(f"\n Element not found: {ex.msg}")
         dump_logs(d_logs=ex)
         return False
 
     except (ElementNotInteractableException, ElementClickInterceptedException) as ex:
-        print(f" Element not interactable or click intercepted: {ex.msg}")
+        print(f"\n Element not interactable or click intercepted: {ex.msg}")
         step = "\nNetwork Conf " + portal
         dump_logs(d_logs=step)
         dump_logs(d_logs=ex)
         return False
 
     except WebDriverException as ex:
-        print(" WebDriver exception occurred: Host " + portal + " not reachable")
+        print("\n WebDriver exception occurred: Host " + portal + " not reachable")
         dump_logs(d_logs=ex)
         return False
     
@@ -160,6 +169,8 @@ def initial_setup(new_password, accgroup_token, default_password):
         dump_logs(d_logs=ex)
 
         return status
+    
+    dump_logs(d_logs=status)
 
 
 def logout(button_CSS):
@@ -173,7 +184,6 @@ def logout(button_CSS):
 
         print(err)
         
-
 
 def get_status(host_ip, hostname):
 
@@ -226,7 +236,6 @@ def swap_window(host_ip):
         #WebDriverWait(driver, 17).until(EC.text_to_be_present_in_element(diagnostics_message_locator, diagnostics_message_text))
 
 
-
 def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
     status = ''
@@ -253,16 +262,20 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
                 current_ntp = current_ntp_element.get_attribute("value")
 
             if current_ntp != ntp:
+
                 current_ntp_element.clear()
                 
                 try:
                     current_ntp_element.send_keys(ntp)
                     driver.find_element(By.ID, "submit-form").submit()
                     time.sleep(3.3)
+                    status += "\n" + timestamp() + " ntp changed"
+
                 except (NoSuchElementException, ElementNotInteractableException, ElementClickInterceptedException) as ex:
                     pass
 
-                
+                    status += "\n" + timestamp() + " ntp change failed"
+
                 swap_window(host_ip=eas_ipAddress)
                 logout(button_CSS="button.btn-outline-default:nth-child(2)")
                 login(eas_ipAddress, new_password)
@@ -286,6 +299,7 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
             status += "\n" + timestamp() + "-> Hostname Changed "
 
         else:
+            
             status += "\n" + timestamp() + "-> Hostname Default"
             time.sleep(0.77)
 
@@ -336,14 +350,14 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
         time.sleep(5.55)
 
             #Status
-
+        dump_logs(d_logs=status)
         return status
 
     except(TimeoutException, NoSuchElementException, ElementNotInteractableException, ElementClickInterceptedException) as ex:
 
         status += "\n" + timestamp() + "-> Network Setup Fail"
         dump_logs(d_logs=ex)
-
+        dump_logs(d_logs=status)
         return False
 
 
