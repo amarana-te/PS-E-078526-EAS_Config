@@ -79,6 +79,17 @@ def dump_logs(d_logs):
     f.close()
 
 
+def wait_and_click_selector(selector, timeout=10):
+        
+    element = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(selector))
+    element.click()
+
+
+def wait_and_click_name(name, timeout=10):
+        
+    WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(By.NAME, name))
+
+
 def login(host_ip, password) -> bool:
 
     portal = 'https://' + host_ip
@@ -88,7 +99,8 @@ def login(host_ip, password) -> bool:
 
         driver.set_page_load_timeout(7)
         driver.get(portal)
-        time.sleep(1.77)
+        time.sleep(0.77)
+        wait_and_click_name(name="username")
         driver.find_element(By.NAME, 'username').send_keys('admin')
         time.sleep(0.77)
         driver.find_element(By.NAME, "password").send_keys(password)
@@ -120,36 +132,29 @@ def login(host_ip, password) -> bool:
         dump_logs(d_logs=ex)
         return False
     
-
-def wait_and_click(selector, timeout=10):
-        
-    element = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(selector))
-    element.click()
-
-
+    
 def initial_setup(new_password, accgroup_token, default_password):
     status = ''
     status += "\n" + timestamp() + "-> Enterprise Agent Reachable "
 
     try:
 
-        time.sleep(1.77)
+        time.sleep(3.33)
+        wait_and_click_name(name="originalPassword")
         driver.find_element(By.NAME, "originalPassword").send_keys(default_password)
         time.sleep(0.77)
         driver.find_element(By.NAME, "newPassword").send_keys(new_password)
         time.sleep(0.77)
         driver.find_element(By.NAME, "confirmPassword").send_keys(new_password)
         time.sleep(3.33)
-        #change_password = WebDriverWait(driver, 17).until(EC.element_to_be_clickable((By.CSS_SELECTOR, "button.btn:nth-child(5)")))
-        #change_password.click()
         driver.find_element(By.CSS_SELECTOR, "button.btn:nth-child(5)").submit()
         time.sleep(2.77)
 
         status += "\n" + timestamp() + "-> Original Password Has Changed Successfully "
 
     except(NoSuchElementException, ElementNotInteractableException, ElementClickInterceptedException) as ex:
-        pass
-            #print(ex)
+        
+        #print(ex)
         dump_logs(d_logs=ex)
 
         status += "\n" + timestamp() + "-> Could not Change Original Password"
@@ -178,7 +183,7 @@ def logout(button_CSS):
     try:
         
         logout = (By.CSS_SELECTOR, button_CSS)#child(2)
-        wait_and_click(logout)
+        wait_and_click_selector(logout)
 
     except TypeError as err:
 
@@ -219,9 +224,7 @@ def swap_window(host_ip):
         time.sleep(1.77)
         driver.switch_to.new_window('tab')
         tabs = driver.window_handles
-        #time.sleep(1.77)
         #driver.switch_to.window(tabs[0])
-        #time.sleep(1.77)
         #driver.close()
         time.sleep(1.77)
         driver.switch_to.window(tabs[1])
@@ -253,12 +256,12 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
             try:
             
-                current_ntp_element = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector1)))
+                current_ntp_element = WebDriverWait(driver, 7).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector1)))
                 current_ntp = current_ntp_element.get_attribute("value")
             
             except NoSuchElementException:
             
-                current_ntp_element = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector2)))
+                current_ntp_element = WebDriverWait(driver, 7).until(EC.presence_of_element_located((By.CSS_SELECTOR, selector2)))
                 current_ntp = current_ntp_element.get_attribute("value")
 
             if current_ntp != ntp:
@@ -309,8 +312,11 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
                 
                 driver.find_element(By.LINK_TEXT, "Network").click()
                 time.sleep(1.77)
-
-                driver.find_element(By.NAME, "proxy-ca").send_keys(CERT)
+                wait_and_click_name(name="proxy-ca")
+                apt_cert = driver.find_element(By.NAME, "proxy-ca")
+                apt_cert.clear()
+                time.sleep(0.77)
+                apt_cert.send_keys(CERT)
                 status += "\n" + timestamp() + "-> SSL cert ok "
                 time.sleep(0.77)
 
@@ -319,6 +325,7 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
         if proxy:
 
             # Find the checkbox element
+            wait_and_click_name(name="use-apt-proxy")
             checkbox = driver.find_element(By.NAME, "use-apt-proxy")
 
             # Check if the checkbox is checked (ticked)
@@ -362,7 +369,6 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
 
 
-
 start_time = time.perf_counter()
 
 file_path = 'agents.csv'
@@ -385,9 +391,7 @@ try:
             eas_ipAddress = eas[0]
             eas_hostName = eas[1]
             eas_status = eas[2]
-            #eas_portal = "https://" + eas_ipAddress
 
-            #print(" " + eas_ipAddress + " ")
 
             if eas_status == "NEW":
 
