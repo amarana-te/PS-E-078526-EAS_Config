@@ -42,8 +42,6 @@ except FileNotFoundError:
 
 #Selenium Object
 
-
-
 opts = FirefoxOptions()
 opts.add_argument("--headless") #headless is a must when there isn't desktop environment
 opts.set_preference("accept_insecure_certs", True)
@@ -79,15 +77,15 @@ def dump_logs(d_logs):
     f.close()
 
 
-def wait_and_click_selector(selector, timeout=10):
+def wait_and_click(selector, timeout=10):
         
     element = WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(selector))
     element.click()
 
 
-def wait_and_click_name(name, timeout=10):
+def only_wait(selector, timeout):
         
-    WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(By.NAME, name))
+    WebDriverWait(driver, timeout).until(EC.element_to_be_clickable(selector))
 
 
 def login(host_ip, password) -> bool:
@@ -97,11 +95,12 @@ def login(host_ip, password) -> bool:
 
     try:
 
-        driver.set_page_load_timeout(7)
+        #driver.set_page_load_timeout(7)
         driver.get(portal)
         time.sleep(0.77)
-        wait_and_click_name(name="username")
-        driver.find_element(By.NAME, 'username').send_keys('admin')
+        username = (By.NAME, 'username')
+        only_wait(selector=username, timeout=7)
+        driver.find_element(*username).send_keys('admin')
         time.sleep(0.77)
         driver.find_element(By.NAME, "password").send_keys(password)
         time.sleep(0.77)
@@ -139,9 +138,10 @@ def initial_setup(new_password, accgroup_token, default_password):
 
     try:
 
-        time.sleep(3.33)
-        wait_and_click_name(name="originalPassword")
-        driver.find_element(By.NAME, "originalPassword").send_keys(default_password)
+        time.sleep(2.3)
+        original_password = (By.NAME, "originalPassword")
+        only_wait(selector=original_password, timeout=10)
+        driver.find_element(*original_password).send_keys(default_password)
         time.sleep(0.77)
         driver.find_element(By.NAME, "newPassword").send_keys(new_password)
         time.sleep(0.77)
@@ -160,14 +160,15 @@ def initial_setup(new_password, accgroup_token, default_password):
         status += "\n" + timestamp() + "-> Could not Change Original Password"
 
     try:
-        time.sleep(2.3)
-        driver.find_element(By.NAME, "accountToken").send_keys(accgroup_token)
         time.sleep(1.77)
-        next_button = WebDriverWait(driver, 7).until(EC.element_to_be_clickable((By.ID, "setupButtonNext")))
+        account_token_element = (By.NAME, "accountToken")
+        only_wait(selector=account_token_element, timeout=7)
+        driver.find_element(*account_token_element).send_keys(accgroup_token)
         time.sleep(1.77)
-        next_button.click()
+        next_button = (By.ID, "setupButtonNext")
+        wait_and_click(selector=next_button)
+        time.sleep(5.7)
         status += "\n" + timestamp() + "-> Account Group Token Changed Successfully "
-        time.sleep(5.4)##setupButtonNext
 
     except(NoSuchElementException, ElementNotInteractableException, ElementClickInterceptedException) as ex:
         pass
@@ -183,7 +184,7 @@ def logout(button_CSS):
     try:
         
         logout = (By.CSS_SELECTOR, button_CSS)#child(2)
-        wait_and_click_selector(logout)
+        wait_and_click(logout)
 
     except TypeError as err:
 
@@ -312,8 +313,9 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
                 
                 driver.find_element(By.LINK_TEXT, "Network").click()
                 time.sleep(1.77)
-                wait_and_click_name(name="proxy-ca")
-                apt_cert = driver.find_element(By.NAME, "proxy-ca")
+                proxy_ca = (By.NAME, "proxy-ca")
+                only_wait(selector=proxy_ca, timeout=4)
+                apt_cert = driver.find_element(*proxy_ca)
                 apt_cert.clear()
                 time.sleep(0.77)
                 apt_cert.send_keys(CERT)
@@ -325,8 +327,9 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
         if proxy:
 
             # Find the checkbox element
-            wait_and_click_name(name="use-apt-proxy")
-            checkbox = driver.find_element(By.NAME, "use-apt-proxy")
+            apt_get_proxy = (By.NAME, "use-apt-proxy")
+            only_wait(selector=apt_get_proxy, timeout=4)
+            checkbox = driver.find_element(*apt_get_proxy)
 
             # Check if the checkbox is checked (ticked)
             if checkbox.is_selected():
