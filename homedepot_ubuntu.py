@@ -138,7 +138,7 @@ def initial_setup(new_password, accgroup_token, default_password):
 
     try:
 
-        time.sleep(2.3)
+        time.sleep(10)
         original_password = (By.NAME, "originalPassword")
         only_wait(selector=original_password, timeout=10)
         driver.find_element(*original_password).send_keys(default_password)
@@ -156,8 +156,13 @@ def initial_setup(new_password, accgroup_token, default_password):
         
         #print(ex)
         dump_logs(d_logs=ex)
+        html = driver.page_source
+
+        dump_logs(d_logs=html)
 
         status += "\n" + timestamp() + "-> Could not Change Original Password"
+        dump_logs(d_logs=status)
+
 
     try:
         time.sleep(1.77)

@@ -1,5 +1,5 @@
 # Use the Python 3.10 image as the base image
-FROM python:3.10
+FROM python:3.11.5
 
 # Set environment variables
 ENV DEBIAN_FRONTEND=noninteractive
