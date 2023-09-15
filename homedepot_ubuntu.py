@@ -40,12 +40,12 @@ except FileNotFoundError:
     exit()
 
 
-#Selenium Object
+#Selenium Object START#
 
 opts = FirefoxOptions()
 opts.add_argument("--headless") #headless is a must when there isn't desktop environment
 opts.set_preference("accept_insecure_certs", True)
-
+opts.binary_location = "/opt/firefox/firefox"
 if config_data.get("firefox_proxy"):
 
     PROXY = config_data.get("firefox_proxy")
@@ -54,10 +54,11 @@ if config_data.get("firefox_proxy"):
     "sslProxy": PROXY,
     "proxyType": "manual",
 }
-    
-driverService = Service('geckodriver') 
+   
+driverService = Service('geckodriver', log_output='geckodriver.log') 
 driver = webdriver.Firefox(service=driverService, options=opts)
-
+driver.capabilities['timeouts']['implicit'] = 30
+#Selenium Object END#
 
 # Variables
 status = ''
