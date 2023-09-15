@@ -9,11 +9,13 @@ ENV FIREFOX_VER=117.0.1
 # Update and install necessary packages
 RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y \
+    firefox-esr \
     curl \
     libx11-xcb1 \
     libdbus-glib-1-2 \
     vim \
     nano && \
+    apt purge -y firefox-esr* && \ 
     pip install \
     requests \
     selenium \
