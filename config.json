@@ -1,7 +1,7 @@
 {
     "accountGroupToken": "twqg6931xngganfto6zh2qyo7n83o3bz",
     "NTP": "time.google.com",
-    "cert": 0,
+    "cert": 1,
     "proxy_url": "thd-svr-proxy.com",
     "proxy_port": 9090,
     "defaultPassword": "welcome",
