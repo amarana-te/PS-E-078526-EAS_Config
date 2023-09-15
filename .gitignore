@@ -396,3 +396,9 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# Ignore Python __pycache__ directories
+__pycache__/
+
+#Readme
+README.md
