@@ -406,7 +406,7 @@ def setup_ssl(CERT: str):
         logging.info(timestamp() + "-> trying to replace SSL cert ")
         time.sleep(0.77)        
         proxy_ca = (By.NAME, "proxy-ca")
-        only_wait(selector=proxy_ca, timeout=7)
+        only_wait(selector=proxy_ca, timeout=10)
         apt_cert = driver.find_element(*proxy_ca)
         apt_cert.clear()
         time.sleep(0.77)
@@ -443,7 +443,7 @@ def setup_apt_proxy(proxy: str, proxy_port: int):
         # Find the checkbox element
         time.sleep(0.77)
         apt_get_proxy = (By.NAME, "use-apt-proxy")
-        only_wait(selector=apt_get_proxy, timeout=7)
+        only_wait(selector=apt_get_proxy, timeout=10)
         checkbox = driver.find_element(*apt_get_proxy)
 
         logging.info(timestamp() + " setting apt-get proxy")
