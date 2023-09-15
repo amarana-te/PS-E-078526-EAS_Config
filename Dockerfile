@@ -7,10 +7,8 @@ ENV GECKODRIVER_VER=v0.33.0
 ENV FIREFOX_VER=117.0.1
 
 # Update and install necessary packages
-RUN apt purge -y firefox-esr* && \ 
-    apt-get update && apt-get upgrade -y && \
+RUN apt-get update && apt-get upgrade -y && \
     apt-get install -y \
-    firefox-esr \
     curl \
     libx11-xcb1 \
     libdbus-glib-1-2 \

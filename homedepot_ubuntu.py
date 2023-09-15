@@ -55,7 +55,7 @@ if config_data.get("firefox_proxy"):
     "proxyType": "manual",
 }
    
-driverService = Service('geckodriver', log_output='geckodriver.log') 
+driverService = Service('/usr/bin/geckodriver', log_output='geckodriver.log') 
 driver = webdriver.Firefox(service=driverService, options=opts)
 driver.capabilities['timeouts']['implicit'] = 30
 #Selenium Object END#
