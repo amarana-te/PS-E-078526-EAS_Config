@@ -451,6 +451,7 @@ def setup_apt_proxy(proxy: str, proxy_port: int):
         # Check if the checkbox is checked (ticked)
         if checkbox.is_selected(): 
             
+            time.sleep(0.77)
             driver.find_element(By.NAME, "apt-proxy-host").clear()
             time.sleep(0.77)
             driver.find_element(By.NAME, "apt-proxy-host").send_keys(proxy)
@@ -463,7 +464,9 @@ def setup_apt_proxy(proxy: str, proxy_port: int):
 
             driver.find_element(By.NAME, "use-apt-proxy").click()
             time.sleep(0.77)
-            driver.find_element(By.NAME, "apt-proxy-host").send_keys(proxy)
+            proxy_host = (By.NAME, "apt-proxy-host")
+            only_wait(selector=proxy_host)
+            driver.find_element(*proxy_host).send_keys(proxy)
             time.sleep(0.77)
             driver.find_element(By.NAME, "apt-proxy-port").send_keys(proxy_port)
             time.sleep(0.77)
@@ -522,7 +525,7 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
 
     #apt-get proxy
-    if proxy:
+    if proxy and proxy_port:
 
         setup_apt_proxy(proxy=proxy, proxy_port=proxy_port)
 
