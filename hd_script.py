@@ -83,7 +83,7 @@ def dump_logs(d_logs):
     f.close()
 
 
-def wait_and_click(selector, timeout=10):
+def wait_and_click(selector, timeout):
         
     try:
 
@@ -126,7 +126,7 @@ def logout(button_CSS):
     try:
         
         logout = (By.CSS_SELECTOR, button_CSS)#child(2)
-        wait_and_click(logout)
+        wait_and_click(selector=logout, timeout=10)
 
     except NoSuchElementException as ex:
         
@@ -171,7 +171,7 @@ def login(host_ip, password) -> bool:
         driver.get(portal)
         time.sleep(0.77)
         username = (By.NAME, 'username')
-        only_wait(selector=username, timeout=7)
+        only_wait(selector=username, timeout=10)
         driver.find_element(*username).send_keys('admin')
         time.sleep(0.77)
         driver.find_element(By.NAME, "password").send_keys(password)
@@ -213,7 +213,7 @@ def initial_setup(new_password, accgroup_token, default_password):
 
         time.sleep(10)
         original_password = (By.NAME, "originalPassword")
-        only_wait(selector=original_password, timeout=10)
+        only_wait(selector=original_password, timeout=15)
         driver.find_element(*original_password).send_keys(default_password)
         time.sleep(0.77)
         driver.find_element(By.NAME, "newPassword").send_keys(new_password)
@@ -233,6 +233,14 @@ def initial_setup(new_password, accgroup_token, default_password):
         logging.warning(timestamp() + "-> Original Password input element not found")
         logging.exception(ex)
 
+        try:
+
+            logging.debug(str(driver.page_source))
+
+        except TypeError as err:
+
+            logging.warning(str(err))
+
         return False
 
     except ElementNotInteractableException as ex:
@@ -251,14 +259,14 @@ def initial_setup(new_password, accgroup_token, default_password):
 
     try:
 
-        logging.info(timestamp() + "-> Attempting to setup the Account Group Token Changed")        
-        time.sleep(1.77)
+        logging.info(timestamp() + "-> Attempting to setup the Account Group Token")        
+        time.sleep(10)
         account_token_element = (By.NAME, "accountToken")
-        only_wait(selector=account_token_element, timeout=10)
+        only_wait(selector=account_token_element, timeout=20)
         driver.find_element(*account_token_element).send_keys(accgroup_token)
         time.sleep(1.77)
         next_button = (By.ID, "setupButtonNext")
-        wait_and_click(selector=next_button)
+        wait_and_click(selector=next_button, timeout=20)
         time.sleep(5.7)
         logging.info(timestamp() + "-> Account Group Token Changed Successfully")
 
@@ -287,7 +295,7 @@ def initial_setup(new_password, accgroup_token, default_password):
 def setup_ntp(ntp, eas_ipAddress):
 
     menu_time = (By.LINK_TEXT, "Time")
-    wait_and_click(selector=menu_time)
+    wait_and_click(selector=menu_time, timeout=10)
     
     # Define the CSS selectors
     selector1 = 'div.form-group:nth-child(2) > div:nth-child(2) > input:nth-child(1)'
@@ -499,16 +507,18 @@ def setup_apt_proxy(proxy: str, proxy_port: int):
 def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
     logging.info(timestamp() + "-> Network Setup")
-
+    time.sleep(10)
+    
     #NTP
     if ntp:
 
         setup_ntp(ntp, eas_ipAddress)
+        time.sleep(10)
 
 
     #NETWORK TAB ############################
     menu_network = (By.LINK_TEXT, "Network")
-    wait_and_click(selector=menu_network)
+    wait_and_click(selector=menu_network, timeout=20)
     time.sleep(0.77)
     #########################################
 
