@@ -1,4 +1,5 @@
 import time
+import re
 import json
 import getpass
 import logging
@@ -27,18 +28,45 @@ logging.basicConfig(filename=logfile, level=logging.INFO)
 
 # Ask for the password before selenium instance
 try:
-    new_password = getpass.getpass("Enter Agent(s) new password: ")
-    #print("You entered:", new_password)
+
+    while True:
+
+        new_password = getpass.getpass("Enter Agent(s) new password: ")
+
+        # Check if the password contains at least one capital letter
+        if not re.search(r'[A-Z]', new_password):
+            print("Password must contain at least one capital letter.")
+            continue
+
+        # Check if the password contains at least one digit
+        if not re.search(r'[0-9]', new_password):
+            print("Password must contain at least one digit.")
+            continue
+
+        # Check if the password is at least 8 characters long
+        if len(new_password) < 8:
+            print("Password must be at least 8 characters long.")
+            continue
+
+        # If all criteria are met, break out of the loop
+        break
+
+    print("\nPassword accepted!\n")
+
 except KeyboardInterrupt:
+    
     print("\nPassword input was canceled.")
+
 except Exception as e:
+    
     print("An error occurred:", e)
+
 
 
 #Load Config
 config_path = "config.json"
 try:
-    print("Reading Config")
+    print("\nReading Config\n")
     with open(config_path, 'r') as file:
         # Step 3: Load the JSON data into a Python dictionary
         config_data = json.load(file)
@@ -77,7 +105,7 @@ logging.info(driver.capabilities)
 
 def dump_logs(d_logs):
     d_logs = str(d_logs)
-    file_name = 'dump' + timestamp().replace('/', '_')[:8] + '.log'
+    file_name = 'source_code' + timestamp().replace('/', '_')[:8] + '.log'
     f = open(file_name, 'a+')  # open file in append mode
     f.write(d_logs)
     f.close()
@@ -121,12 +149,48 @@ def only_wait(selector, timeout):
         logging.error(f"Element not found: {selector}")
         
 
+def issue_click():
+
+    try:
+
+        modal = driver.find_element(By.CSS_SELECTOR, "#SetupModal___BV_modal_content_")
+
+        if modal.is_displayed():
+
+            logging.info(timestamp() + "-----> The SETUP modal is present and visible.")
+                        
+        else:
+            
+            logging.info(timestamp() + "-----> The SETUP modal is NOT present and visible.")
+    
+    except NoSuchElementException:
+            
+            logging.info(timestamp() + "-----> The modal ELEMENT is NOT present and visible.")
+
+    try:
+
+        actions = ActionChains(driver)
+        actions.move_by_offset(1250, 200)
+        actions.perform()
+
+        # Perform a click action at the center of the screen
+        actions.click()
+        actions.perform()
+        logging.info(timestamp() + "-> >>>>> Clicking <<<<<")
+
+    except Exception as e:
+
+        logging.error(f"An error occurred while issuing a click: {str(e)}")
+
+
 def logout(button_CSS):
 
     try:
-        
+
+        logging.debug(timestamp() + "---> " + driver.title)
         logout = (By.CSS_SELECTOR, button_CSS)#child(2)
-        wait_and_click(selector=logout, timeout=10)
+        wait_and_click(selector=logout, timeout=30)
+        logging.info(timestamp() + "-> *** Logout ***")
 
     except NoSuchElementException as ex:
         
@@ -141,7 +205,6 @@ def logout(button_CSS):
 def swap_window(host_ip):
         
         portal = 'https://' + host_ip + '/status'
-        
         time.sleep(0.77)
         driver.switch_to.new_window('tab')
         tabs = driver.window_handles
@@ -177,9 +240,9 @@ def login(host_ip, password) -> bool:
         driver.find_element(By.NAME, "password").send_keys(password)
         time.sleep(0.77)
         driver.find_element(By.CSS_SELECTOR, '.btn-outline-default').submit()
-        time.sleep(1.77)
-
-        logging.info(timestamp() + "-> Logged in " + portal)
+        time.sleep(5)
+        logging.info(timestamp() + "---> Logged in " + portal)
+        logging.debug(timestamp() + "---> " + driver.title)
 
         return True
     
@@ -205,6 +268,59 @@ def login(host_ip, password) -> bool:
         return False
 
 
+def setup_account_group(accgroup_token):
+
+    try:
+
+        time.sleep(5) 
+        issue_click() #new
+        logging.debug(timestamp() + "------> " + driver.title)        
+        menu_agent = (By.LINK_TEXT, "Agent")
+        wait_and_click(selector=menu_agent, timeout=30)
+        logging.debug(timestamp() + "------> " + driver.title)
+        logging.info(timestamp() + "-> Attempting to setup the Account Group Token")
+        account_token_element = (By.NAME, "accountToken")
+        only_wait(selector=account_token_element, timeout=30)
+        driver.find_element(*account_token_element).send_keys(accgroup_token)
+        time.sleep(1.77)
+        #next_button = (By.ID, "setupButtonNext")
+        submit_button = (By.CSS_SELECTOR, "#submit-form")
+        wait_and_click(selector=submit_button, timeout=20)
+        time.sleep(5.7)
+        logging.info(timestamp() + "-> Account Group Token Changed Successfully")
+
+        return True
+
+
+    except NoSuchElementException as ex:
+
+        logging.warning(timestamp() + "-> Account Group Token input element not found")
+        logging.exception(ex)
+
+        try:
+
+            logging.debug(timestamp() + "------> " + driver.title)
+
+        except TypeError as err:
+
+            logging.warning(str(err))
+
+        return False
+
+    except ElementNotInteractableException as ex:
+
+        logging.warning(timestamp() + "-> Account Group Token input element not interactable")
+        logging.exception(ex)
+
+        return False
+
+    except Exception as e:
+
+        logging.error(timestamp() + "-> Error occurred while changing Account Group Token: " + str(e))
+
+        return False
+
+
 def initial_setup(new_password, accgroup_token, default_password):
     
     logging.info(timestamp() + "-> Starting Initial Setup ")
@@ -212,6 +328,7 @@ def initial_setup(new_password, accgroup_token, default_password):
     try:
 
         time.sleep(10)
+        issue_click()
         original_password = (By.NAME, "originalPassword")
         only_wait(selector=original_password, timeout=15)
         driver.find_element(*original_password).send_keys(default_password)
@@ -221,10 +338,9 @@ def initial_setup(new_password, accgroup_token, default_password):
         driver.find_element(By.NAME, "confirmPassword").send_keys(new_password)
         time.sleep(0.77)
         change_password = (By.CSS_SELECTOR, "button.btn:nth-child(5)")
-        only_wait(selector=change_password, timeout=10)
-        driver.find_element(*change_password).submit()
-        time.sleep(1.77)
-
+        wait_and_click(selector=change_password, timeout=20)
+        #driver.find_element(*change_password).submit()
+        time.sleep(5)
         logging.info(timestamp() + "-> Original Password Has Changed Successfully")
 
 
@@ -232,14 +348,6 @@ def initial_setup(new_password, accgroup_token, default_password):
 
         logging.warning(timestamp() + "-> Original Password input element not found")
         logging.exception(ex)
-
-        try:
-
-            logging.debug(str(driver.page_source))
-
-        except TypeError as err:
-
-            logging.warning(str(err))
 
         return False
 
@@ -257,39 +365,15 @@ def initial_setup(new_password, accgroup_token, default_password):
         return False
 
 
-    try:
+    #Setup account group
 
-        logging.info(timestamp() + "-> Attempting to setup the Account Group Token")        
-        time.sleep(10)
-        account_token_element = (By.NAME, "accountToken")
-        only_wait(selector=account_token_element, timeout=20)
-        driver.find_element(*account_token_element).send_keys(accgroup_token)
-        time.sleep(1.77)
-        next_button = (By.ID, "setupButtonNext")
-        wait_and_click(selector=next_button, timeout=20)
-        time.sleep(5.7)
-        logging.info(timestamp() + "-> Account Group Token Changed Successfully")
+    driver.refresh()
+    time.sleep(5)
+    issue_click()
+    logout(button_CSS=".d-flex > button:nth-child(1)") 
+    login(eas_ipAddress, new_password)
 
-
-    except NoSuchElementException as ex:
-
-        logging.warning(timestamp() + "-> Account Group Token input element not found")
-        logging.exception(ex)
-
-        return False
-
-    except ElementNotInteractableException as ex:
-
-        logging.warning(timestamp() + "-> Account Group Token input element not interactable")
-        logging.exception(ex)
-
-        return False
-
-    except Exception as e:
-
-        logging.error(timestamp() + "-> Error occurred while changing Account Group Token: " + str(e))
-
-        return False
+    setup_account_group(accgroup_token=accgroup_token) 
     
     
 def setup_ntp(ntp, eas_ipAddress):
@@ -322,7 +406,6 @@ def setup_ntp(ntp, eas_ipAddress):
             time.sleep(0.77)    
             current_ntp_element.send_keys(ntp)
             driver.find_element(By.ID, "submit-form").submit()
-            
             time.sleep(3.3)
             logging.info(timestamp() + " NTP changed")
 
@@ -473,7 +556,7 @@ def setup_apt_proxy(proxy: str, proxy_port: int):
             driver.find_element(By.NAME, "use-apt-proxy").click()
             time.sleep(0.77)
             proxy_host = (By.NAME, "apt-proxy-host")
-            only_wait(selector=proxy_host)
+            only_wait(selector=proxy_host, timeout=10)
             driver.find_element(*proxy_host).send_keys(proxy)
             time.sleep(0.77)
             driver.find_element(By.NAME, "apt-proxy-port").send_keys(proxy_port)
@@ -508,12 +591,14 @@ def network_setup(eas_ipAddress, hostname, ntp, proxy, proxy_port, cert):
 
     logging.info(timestamp() + "-> Network Setup")
     time.sleep(10)
+    issue_click()
     
     #NTP
     if ntp:
 
         setup_ntp(ntp, eas_ipAddress)
-        time.sleep(10)
+        time.sleep(5)
+        issue_click()
 
 
     #NETWORK TAB ############################
@@ -634,3 +719,4 @@ except Exception as e:
 bar.finish()
 driver.quit()
 print("\n\tTotal Elapsed Time ", time.perf_counter() - start_time)
+print("\n\n")
