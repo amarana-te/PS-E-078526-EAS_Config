@@ -1,4 +1,4 @@
-# Use the Python 3.10 image as the base image
+# Use the Python 3.11 image as the base image
 FROM python:3.11.5
 
 # Set environment variables
