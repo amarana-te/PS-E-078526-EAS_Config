@@ -15,7 +15,7 @@ RUN apt-get update && apt-get upgrade -y && \
     libdbus-glib-1-2 \
     vim \
     nano && \
-    apt purge -y firefox-esr* && apt-get clean \ 
+    apt purge -y firefox-esr* && \ 
     pip install \
     requests \
     selenium \
