@@ -15,13 +15,12 @@ RUN apt-get update && apt-get upgrade -y && \
     libdbus-glib-1-2 \
     vim \
     nano && \
-    apt purge -y firefox-esr* && \ 
+    apt purge -y firefox-esr* && apt-get clean \ 
     pip install \
     requests \
     selenium \
-    progress && \
-    apt-get clean
-
+    progress && 
+    
 # Download and install the latest Firefox
 RUN curl -sSLO https://download-installer.cdn.mozilla.net/pub/firefox/releases/${FIREFOX_VER}/linux-x86_64/en-US/firefox-${FIREFOX_VER}.tar.bz2 && \
     tar -jxf firefox-* -C /opt/ && \
