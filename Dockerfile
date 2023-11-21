@@ -19,7 +19,8 @@ RUN apt-get update && apt-get upgrade -y && \
     pip install \
     requests \
     selenium \
-    progress
+    progress && \
+    apt-get clean
 
 # Download and install the latest Firefox
 RUN curl -sSLO https://download-installer.cdn.mozilla.net/pub/firefox/releases/${FIREFOX_VER}/linux-x86_64/en-US/firefox-${FIREFOX_VER}.tar.bz2 && \
